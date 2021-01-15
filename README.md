@@ -11,7 +11,7 @@ _Elegir la bola violeta_
 
 # Ejemplo
 
-![GIF](https://i.ibb.co/qM4fMZP/Whats-App-Video-2021-01-14-at-9-43-10-PM-1.gif "GIF")
+[![Whats-App-Video-2021-01-14-at-9-43-10-PM-1.gif](https://i.postimg.cc/bwTHmsj2/Whats-App-Video-2021-01-14-at-9-43-10-PM-1.gif)](https://postimg.cc/688v36q9)
 
 ## Notas
 Nota: se utilizo sparkoCam para capturar la patalla y crear una webcam virtual
