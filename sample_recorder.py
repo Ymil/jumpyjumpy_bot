@@ -2,12 +2,12 @@ from pynput import keyboard
 import threading
 import cv2 as cv
 import time
-from .main import ceil_deteccion, obstacle_deteccion
+#|from . import ceil_deteccion, obstacle_deteccion
 
-folder_dest = "/samples"
+folder_dest = "samples"
 time_start = 0
 class recorder():
-    def __init__():
+    def __init__(self):
         self.cap = cv.VideoCapture(0)
         if not self.cap.isOpened():
             print("Cannot open camera")
@@ -15,14 +15,16 @@ class recorder():
         self.__frame = None
         self.__time_start = 0
         self.__lock = threading.Lock()
+        self.__press = False
 
     def processing(self):
-        _, __frame = self.cap.read()
+        _, self.__frame = self.cap.read()
         #img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)
 
     def on_press(self, key):        
-        if key == keyboard.Key.left or key == keyboard.Key.right:
-            self.__lock.acquire()
+        if (key == keyboard.Key.left or key == keyboard.Key.right) and self.__press == False:
+            #self.__lock.acquire()
+            self.__press = True
             self.processing()
             print("Start capture")
             self.time_start = time.time()         
@@ -33,12 +35,14 @@ class recorder():
             time_delta = time.time() - self.__time_start
             print("End Capture")
             filename = "{}/{}-{}d-{}s.JPG".format(folder_dest, time.time(), str(key), time_delta)
-            thread = threading.Thread(target=self.write, args=(filename, self.__frame))
+            thread = threading.Thread(target=self.write, args=(filename, self.__frame,))
             thread.start()
-            self.__lock.release()
+            self.__press = False
+            #self.__lock.release()
     
     def write(self, filename, frame):
-        cv.imwrite(__frame, filename)
+        cv.imwrite(filename, frame)
+        #cv.imwrite()
 
 r = recorder()
 # Collect events until released
