@@ -22,7 +22,7 @@ class recorder():
         #img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)
 
     def on_press(self, key):        
-        if (key == keyboard.Key.left or key == keyboard.Key.right) and self.__press == False:
+        if (key == keyboard.Key.left or key == keyboard.Key.right or key == keyboard.Key.space) and self.__press == False:
             #self.__lock.acquire()
             self.__press = True
             self.processing()
@@ -31,7 +31,7 @@ class recorder():
                       
 
     def on_release(self, key):
-        if key == keyboard.Key.left or key == keyboard.Key.right:
+        if key == keyboard.Key.left or key == keyboard.Key.right or key == keyboard.Key.space:
             time_delta = time.time() - self.__time_start
             print("End Capture")
             filename = "{}/{}-{}d-{}s.JPG".format(folder_dest, time.time(), str(key), time_delta)

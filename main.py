@@ -20,7 +20,7 @@ ceil_min = (0, 182, 0)
 ceil_max = (107, 360, 360)
 obs_min = (50, 84, 202)
 obs_max = (142, 229, 265)
-
+from pynput.keyboard import Key, Controller
 keyboard = Controller()
 kernel = np.ones((5,5),np.uint8)
 kernel_two = np.ones((1,1),np.uint8)
@@ -57,26 +57,28 @@ def ball_deteccion(img, canvas_img):
     mask = cv.morphologyEx(mask,cv.MORPH_OPEN,kernel)
     mask = cv.morphologyEx(mask,cv.MORPH_CLOSE,kernel)
 
-    _,contours,_ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+
 #    cv.imshow("", mask)
 #    cv.waitKey()
     cx = 0
     cy = 0
+    #print((contours, _))
     for i in contours:
         #Calcular el centro a partir de los momentos
         #  continue
         
-        x,y,w,h = cv.boundingRect(i)
+        (x,y,w,h) = cv.boundingRect(i)
         if w/h > 1.5:
             continue
         #print("W %s H %s: %s" % (w,h,w/h))    
-        cv.rectangle(canvas_img,(x,y),(x+w,y+h),(0,255,0),2)
+        #cv.rectangle(canvas_img,(x,y),(x+w,y+h),(0,255,0),2)
         momentos = cv.moments(i)
         cx = int(momentos['m10']/momentos['m00'])
         cy = int(momentos['m01']/momentos['m00'])
 
         #Dibujar el centro
-        cv.circle(canvas_img,(cx, cy), 3, (0,0,255), -1)
+        #cv.circle(canvas_img,(cx, cy), 3, (0,0,255), -1)
         break
     return [cx, cy, mask] 
 
