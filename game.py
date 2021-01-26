@@ -6,6 +6,7 @@ import numpy as np
 import math
 import pandas as pd
 import matplotlib.pyplot as plt
+import mss
 from main import ball_deteccion, ceil_deteccion, obstacle_deteccion, measure_distance_to_ceil_and_detted_colission, analize_space
 import cv2
 import statistics as stats
@@ -284,6 +285,12 @@ class recorder():
         
         # Compilar modelo cargado y listo para usar.
         self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['binary_accuracy'])
+    
+    def get_image(self):
+        with mss.mss() as sct:
+            monitor = {'top': 250, 'left': 740, 'width': 480, 'height': 640}
+            img = numpy.array(sct.grab(monitor))
+        return img
 
 r = recorder()
 r.load_model()
@@ -291,7 +298,9 @@ if __name__ == "__main__":
     while True:
         # Capture frame-by-frame
         start = time.time()
-        ret, frame = r.cap.read()
+
+
+
         print("Capture {}s".format(time.time() - start))
         start = time.time()
         img = r.processing(frame)
