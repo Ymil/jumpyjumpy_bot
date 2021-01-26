@@ -65,15 +65,15 @@ def analize_ceil(img, ceil_x, ceil_y, second_width=45,
         cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),1)
         result = analize_point(ceil_all_mask, cx_, math.floor(cy_))
         left_list.append(result)
-        #if result == 1:
+        if result == 1:
             #print(cx_, math.floor(cy_))
             #print("empty space left")
-        #    cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)  
+            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)  
         #    left_distance = (cx_ - ceil_x)*-1            
-        #elif result == -1:
+        elif result == -1:
             #print(cx_, math.floor(cy_))
             #print("obs detect left")
-        #    cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
+            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
         #    pass
     print("Processing 61 time {}s".format(time.time() - time_start_61))
     time_start_78 = time.time()
@@ -84,16 +84,16 @@ def analize_ceil(img, ceil_x, ceil_y, second_width=45,
         cv.circle(canvas_img,(cx_tmp, cy_),2,(0,0,255),1)
         result = analize_point(ceil_all_mask, cx_tmp, math.floor(cy_))
         left_list.append(result)
-        #if result == 1:
+        if result == 1:
             #print(cx_, math.floor(cy_))
             #print("empty space left")
-        #    cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
+            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
         #    left_distance = (cx_ - ceil_x)*-1            
-        #elif result == -1:
+        elif result == -1:
         #    pass
             #print(cx_, math.floor(cy_))
             #print("obs detect left")
-        #    cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
+            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
     print("Processing 78 time {}s".format(time.time() - time_start_78))
     cy_ = ceil_y+delta_y
     
@@ -104,17 +104,17 @@ def analize_ceil(img, ceil_x, ceil_y, second_width=45,
         cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),1)
         result = analize_point(ceil_all_mask, cx_, math.floor(cy_))
         right_list.append(result)
-        #if result == 1:
+        if result == 1:
             #print(cx_, math.floor(cy_))
             #print("empty space right")
-        #    cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)
+            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)
         #    right_distance = cx_ - ceil_x
         #    found_right = True
             
-        #elif result == -1:
+        elif result == -1:
             #print(cx_, math.floor(cy_))
             #print("obs detect right")
-        #    cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
+            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
         #    pass
 
     cy_ = math.floor(cy_)
@@ -124,21 +124,20 @@ def analize_ceil(img, ceil_x, ceil_y, second_width=45,
         cv.circle(canvas_img,(cx_tmp, cy_),2,(0,0,255),1)
         result = analize_point(ceil_all_mask, cx_tmp, math.floor(cy_))
         right_list.append(result)
-        #if result == 1:
+        if result == 1:
             #print(cx_, math.floor(cy_))
             #print("empty space left")
-        #    cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
+            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
         #    left_distance = (cx_ - ceil_x)*-1            
-        #elif result == -1:
-            #print(cx_, math.floor(cy_))
+        elif result == -1:
+           #print(cx_, math.floor(cy_))
             #print("obs detect left")
-        #    cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
+            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
         #    pass
     return right_list + left_list
 
 class recorder():
     def __init__(self):
-        self.cap = cv.VideoCapture(0) 
         self.__frame = None
         self.__time_start = 0
         self.__lock = threading.Lock()
@@ -158,7 +157,7 @@ class recorder():
     def measure_ceil_distance(self, repeat = 100):
         ceil = {'x': [], 'y': []}
         for _ in range(repeat):
-            _, img = self.cap.read()
+            img = self.get_image()
             img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)    
             data = []
             cx, cy, _ = ball_deteccion(img_hsv, img)
@@ -180,7 +179,7 @@ class recorder():
         self.data['ceil_space'] = ceil_space
     
     def next_ceil_space_thread(self, mask, img):
-        next_ceil_space = analize_ceil(mask,  self._ceil['x'], self._ceil['y']+150, canvas_img=img, steep_x=1, delta_y=25, delta_x=90, second_width=65)
+        next_ceil_space = analize_ceil(mask,  self._ceil['x'], self._ceil['y']+200, canvas_img=img, steep_x=1, delta_y=25, delta_x=90, second_width=65)
         self.data['next_ceil_space'] = next_ceil_space
 
     def air_space_thread(self, mask, img):
@@ -211,9 +210,9 @@ class recorder():
         air_space_thread.start()
 
         time_start_193 = time.time()
-        ceil_thread.join()
-        next_ceil_space_thread.join()
         air_space_thread.join()
+        next_ceil_space_thread.join()
+        ceil_thread.join()
         #ones[55:255] = air_space
         #air_space = ones
         print("Processing 193 time {}s".format(time.time() - time_start_193))
@@ -269,7 +268,7 @@ class recorder():
                     last_change = time.time()
                     self._press_key = "Key.right"
                         
-            if time.time() - self._move_last_change > 0.5:
+            if time.time() - self._move_last_change > 0.3:
                 self._move_last_change = time.time()
                 self._opcion_move = 0
     
@@ -288,8 +287,8 @@ class recorder():
     
     def get_image(self):
         with mss.mss() as sct:
-            monitor = {'top': 250, 'left': 740, 'width': 480, 'height': 640}
-            img = numpy.array(sct.grab(monitor))
+            monitor = {'top': 250, 'left': 900, 'width': 640, 'height': 580}
+            img = np.array(sct.grab(monitor))
         return img
 
 r = recorder()
@@ -298,14 +297,12 @@ if __name__ == "__main__":
     while True:
         # Capture frame-by-frame
         start = time.time()
-
-
-
+        frame = r.get_image()
         print("Capture {}s".format(time.time() - start))
         start = time.time()
         img = r.processing(frame)
+        cv.imshow("", img)
         print("Processing {}s".format(time.time() - start))
-        cv.imshow("1", img)
         
         if cv.waitKey(1) == ord('q'):
             break
