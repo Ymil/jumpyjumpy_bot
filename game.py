@@ -17,7 +17,7 @@ from pynput.keyboard import Key, Controller
 keyboard = Controller()
 folder_dest = "samples"
 time_start = 0
-kernel_two = np.ones((1,1),np.uint8)
+kernel_two = np.ones((5,5),np.uint8)
 def analize_point(mask, x, y):
     try:
         if mask[y, x] < 100:
@@ -28,121 +28,102 @@ def analize_point(mask, x, y):
         print(e)
     return 0
 
-def analize_space(img, pos_x, pos_y, width=200, canvas_img=None):
+time_measure = {}
+
+def analize_space(img, pos_x, pos_y, width=200, canvas_img=None, draw=False):
     start_x = math.floor(pos_x-(width/2))
     end_x = math.floor(pos_x+(width/2))
-    cv.line(canvas_img, (start_x, pos_y), (end_x, pos_y), (0,0,255))
+    if draw:
+        cv.line(canvas_img, (start_x, pos_y), (end_x, pos_y), (0,0,255))
     line_result = []
     for cx_ in range(start_x, end_x):
-        cv.circle(canvas_img,(cx_, pos_y),2,(0,0,255),1)
         result = analize_point(img, cx_, pos_y)
         line_result.append(result)
-        if result == 1:
-            cv.circle(canvas_img,(cx_, pos_y),2,(0,255,0),2)       
-        elif result == -1:
-            cv.circle(canvas_img,(cx_, pos_y),2,(0,0,255),2)
+        if draw:
+            cv.circle(canvas_img,(cx_, pos_y),2,(0,0,255),1)
+            if result == 1:
+                cv.circle(canvas_img,(cx_, pos_y),2,(0,255,0),2)       
+            elif result == -1:
+                cv.circle(canvas_img,(cx_, pos_y),2,(0,0,255),2)
     return line_result
 
 def analize_ceil(img, ceil_x, ceil_y, second_width=45,
-    delta_y=15, delta_x=110, steep_x=3, canvas_img=None): 
+    delta_y=15, delta_x=110, steep_x=3, canvas_img=None, draw=False): 
     time_start_47 = time.time()
     
     ceil_all_mask = cv.morphologyEx(img,cv.MORPH_OPEN,kernel_two)
     ceil_all_mask = cv.morphologyEx(ceil_all_mask,cv.MORPH_CLOSE,kernel_two)
-    #cv.imshow("2", ceil_all_mask)
     print("Processing 47 time {}s".format(time.time() - time_start_47))
-    #cv.line(canvas_img, (ceil_x, ceil_y+delta_y), (ceil_x-delta_x, ceil_y-10), (0,0,255))
-    #cv.line(canvas_img, (ceil_x, ceil_y+delta_y), (ceil_x+delta_x, ceil_y-10), (0,0,255))
     cy_ = ceil_y+delta_y
-    last_cy = 0
-    last_cx = 0
-    
-    
     left_list = []
-    time_start_61 = time.time()
-    for cx_ in range(ceil_x, ceil_x-delta_x, -steep_x):
-        cy_ -= 0.3*steep_x
-        cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),1)
-        result = analize_point(ceil_all_mask, cx_, math.floor(cy_))
-        left_list.append(result)
-        if result == 1:
-            #print(cx_, math.floor(cy_))
-            #print("empty space left")
-            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)  
-        #    left_distance = (cx_ - ceil_x)*-1            
-        elif result == -1:
-            #print(cx_, math.floor(cy_))
-            #print("obs detect left")
-            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
-        #    pass
-    print("Processing 61 time {}s".format(time.time() - time_start_61))
-    time_start_78 = time.time()
-    cy_ = math.floor(cy_)
-    for cy_ in range(cy_, cy_-second_width, -steep_x):
-        cx_ += 0.3*steep_x
-        cx_tmp = math.floor(cx_)
-        cv.circle(canvas_img,(cx_tmp, cy_),2,(0,0,255),1)
-        result = analize_point(ceil_all_mask, cx_tmp, math.floor(cy_))
-        left_list.append(result)
-        if result == 1:
-            #print(cx_, math.floor(cy_))
-            #print("empty space left")
-            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
-        #    left_distance = (cx_ - ceil_x)*-1            
-        elif result == -1:
-        #    pass
-            #print(cx_, math.floor(cy_))
-            #print("obs detect left")
-            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
-    print("Processing 78 time {}s".format(time.time() - time_start_78))
-    cy_ = ceil_y+delta_y
-    
     right_list = []
-    
+    time_start_61 = time.time()
+    left_cy = 0
+    left_cx = ceil_x
+    right_cx = ceil_x
     for cx_ in range(ceil_x, ceil_x+delta_x, steep_x):
-        cy_ -= 0.3 * steep_x
-        cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),1)
-        result = analize_point(ceil_all_mask, cx_, math.floor(cy_))
-        right_list.append(result)
-        if result == 1:
-            #print(cx_, math.floor(cy_))
-            #print("empty space right")
-            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,255,0),10)
-        #    right_distance = cx_ - ceil_x
-        #    found_right = True
-            
-        elif result == -1:
-            #print(cx_, math.floor(cy_))
-            #print("obs detect right")
-            cv.circle(canvas_img,(cx_, math.floor(cy_)),2,(0,0,255),10)
-        #    pass
+        cy_ -= 0.3*steep_x
+        left_cx = cx_
+        right_cx -= steep_x
+        left_cy = math.floor(cy_)
+        right_cy = left_cy        
+        result_left = analize_point(ceil_all_mask, left_cx, left_cy)
+        result_right = analize_point(ceil_all_mask, right_cx, right_cy)
+        left_list.append(result_left)
+        right_list.append(result_right)
+        if draw:
+            cv.circle(canvas_img,(left_cx, left_cy),2,(0,0,255),1)
+            cv.circle(canvas_img,(right_cx, right_cy),2,(0,0,255),1)
 
-    cy_ = math.floor(cy_)
-    for cy_ in range(cy_, cy_-second_width, -steep_x):
-        cx_ -= 0.3*steep_x
-        cx_tmp = math.floor(cx_)
-        cv.circle(canvas_img,(cx_tmp, cy_),2,(0,0,255),1)
-        result = analize_point(ceil_all_mask, cx_tmp, math.floor(cy_))
-        right_list.append(result)
-        if result == 1:
-            #print(cx_, math.floor(cy_))
-            #print("empty space left")
-            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,255,0),3)  
-        #    left_distance = (cx_ - ceil_x)*-1            
-        elif result == -1:
-           #print(cx_, math.floor(cy_))
-            #print("obs detect left")
-            cv.circle(canvas_img,(cx_tmp, math.floor(cy_)),2,(0,0,255),3)
-        #    pass
+            if result_left == 1:
+                cv.circle(canvas_img,(left_cx, left_cy), 2, (0,255,0),3)            
+            elif result_left == -1:
+                cv.circle(canvas_img,(left_cx, left_cy), 2, (0,0,255),3)
+            
+            if result_right == 1:
+                cv.circle(canvas_img,(right_cx, right_cy), 2, (0,255,0),3)            
+            elif result_right == -1:
+                cv.circle(canvas_img,(right_cx, right_cy), 2, (0,0,255),3)
+            
+    print("Processing 61 time {}s".format(time.time() - time_start_61))
+    time_measure['p61'] = time.time() - time_start_61
+    time_start_78 = time.time()
+    
+    last_cy = left_cy
+    for cy_ in range(last_cy, last_cy-second_width, -steep_x):        
+        left_cx -= math.floor(0.3*steep_x)
+        right_cx += math.floor(0.3*steep_x)
+
+        result_left = analize_point(ceil_all_mask, left_cx, cy_)
+        result_right = analize_point(ceil_all_mask, right_cx, cy_)
+
+        left_list.append(result_left)
+        right_list.append(result_right)
+
+        if draw:
+            cv.circle(canvas_img,(left_cx, cy_),2,(0,0,255),1)
+            cv.circle(canvas_img,(right_cx, cy_),2,(0,0,255),1)
+
+            if result_left == 1:
+                cv.circle(canvas_img,(left_cx, cy_), 2, (0,255,0),10)            
+            elif result_left == -1:
+                cv.circle(canvas_img,(left_cx, cy_), 2, (0,0,255),10)
+            
+            if result_right == 1:
+                cv.circle(canvas_img,(right_cx, cy_), 2, (0,255,0),10)            
+            elif result_right == -1:
+                cv.circle(canvas_img,(right_cx, cy_), 2, (0,0,255),10)
+
+    print("Processing 78 time {}s".format(time.time() - time_start_78))    
+    time_measure['p78'] = time.time() - time_start_78
     return right_list + left_list
 
 class recorder():
     def __init__(self):
         self.__frame = None
-        self.__time_start = 0
-        self.__lock = threading.Lock()
-        self.__press = False
+        self.__time_start = 0     
         self._ceil = {'x': [], 'y': []}
+        self.next_ceil_y = 200
         self._data = []
         self.data = {}
         self.death = False
@@ -155,35 +136,64 @@ class recorder():
         thread.start()
         
     def measure_ceil_distance(self, repeat = 100):
-        ceil = {'x': [], 'y': []}
-        for _ in range(repeat):
+        while True:
+            print("Press 'y' for start measurement to ceil")
             img = self.get_image()
-            img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)    
-            data = []
-            cx, cy, _ = ball_deteccion(img_hsv, img)
-            ceil_mask = ceil_deteccion(img_hsv)
-            obs_mask = obstacle_deteccion(img_hsv) 
+            cv.imshow("", img)
+            if cv.waitKey(0) == ord("y"):
+                break
+        while True:
+            ceil = {'x': [], 'y': []}
+            for _ in range(repeat):
+                img = self.get_image()
+                img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)    
+                data = []
+                cx, cy, _ = ball_deteccion(img_hsv, img)
+                ceil_mask = ceil_deteccion(img_hsv)
+                obs_mask = obstacle_deteccion(img_hsv) 
 
-            obs_all_mask = ceil_mask + obs_mask
-            ceil_cx, ceil_cy, ceil_distance, colision = measure_distance_to_ceil_and_detted_colission(obs_all_mask, cx, cy)
-            if ceil_cx == 0:
-                continue
-            ceil['x'].append(ceil_cx)
-            ceil['y'].append(ceil_cy)
-        self._ceil['y'] = int(stats.median(ceil['y']))
-        self._ceil['x'] = int(stats.median(ceil['x']))
-        print("Ceil position {} {}".format(self._ceil['x'], self._ceil['y']))
+                obs_all_mask = ceil_mask + obs_mask
+                ceil_cx, ceil_cy, ceil_distance, colision = measure_distance_to_ceil_and_detted_colission(obs_all_mask, cx, cy)
+                if ceil_cx == 0:
+                    continue
+                ceil['x'].append(ceil_cx)
+                ceil['y'].append(ceil_cy)
+            self._ceil['y'] = int(stats.median(ceil['y']))
+            self._ceil['x'] = int(stats.median(ceil['x']))
+            img = self.get_image()
+            cv.circle(img,(self._ceil['x'], self._ceil['y']),2,(0,0,255),10)
+            print("Press 'n' for recalibrate")            
+            print("Ceil position {} {}".format(self._ceil['x'], self._ceil['y']))
+            cv.imshow("", img)
+            if not cv.waitKey(0) == ord("n"):
+                break
+        while True:
+            print("Next ceil position, press y if it's okay")           
+            
+            try:
+                next_ceil_y = int(input("Insert delta px to delta ceil [{}]> ".format(self.next_ceil_y)))
+                if not next_ceil_y == 0:
+                    self.next_ceil_y = next_ceil_y                
+            except:
+                print("Invalidad value")
+            cv.circle(img,(self._ceil['x'], self._ceil['y']+self.next_ceil_y),2,(0,0,255),10)
+            print("Next Ceil position {} {}".format(self._ceil['x'], self._ceil['y']+self.next_ceil_y))
+            cv.imshow("", img)
+            if cv.waitKey(0) == ord("y"):
+                break
+            
+        
     
     def ceil_thread(self, mask, img):
-        ceil_space = analize_ceil(mask,  self._ceil['x'],  self._ceil['y'], canvas_img=img, steep_x=1, delta_y=20)
+        ceil_space = analize_ceil(mask,  self._ceil['x'],  self._ceil['y'], canvas_img=img, steep_x=1, delta_y=20, draw=True)
         self.data['ceil_space'] = ceil_space
     
     def next_ceil_space_thread(self, mask, img):
-        next_ceil_space = analize_ceil(mask,  self._ceil['x'], self._ceil['y']+200, canvas_img=img, steep_x=1, delta_y=25, delta_x=90, second_width=65)
+        next_ceil_space = analize_ceil(mask,  self._ceil['x'], self._ceil['y']+self.next_ceil_y, canvas_img=img, steep_x=1, delta_x=90, second_width=65, draw=True)
         self.data['next_ceil_space'] = next_ceil_space
 
     def air_space_thread(self, mask, img):
-        air_space = analize_space(mask,  self._ceil['x'], self._ceil['y']-100, canvas_img=img, width=310)
+        air_space = analize_space(mask,  self._ceil['x'], self._ceil['y']-100, canvas_img=img, width=310, draw=True)
         self.data['air_space'] = air_space
 
     def processing(self, img):
@@ -194,12 +204,14 @@ class recorder():
         time_start = time.time()
         time_start_176 = time.time()
         img_hsv = cv.cvtColor(img, cv.COLOR_RGB2HSV)
-        print("Processing 176 time {}s".format(time.time() - time_start_176))
+        
+        time_measure['p176'] = time.time() - time_start_176
         time_start_179 = time.time()
         ceil_mask = ceil_deteccion(img_hsv)
         obs_mask = obstacle_deteccion(img_hsv) 
         obs_all_mask = ceil_mask + obs_mask           
-        print("Processing 179 time {}s".format(time.time() - time_start_179))
+        
+        time_measure['p179'] = time.time() - time_start_179
         
         time_start_184 = time.time()
         ceil_thread = threading.Thread(target=self.ceil_thread, args=(obs_all_mask, img,))
@@ -215,9 +227,9 @@ class recorder():
         ceil_thread.join()
         #ones[55:255] = air_space
         #air_space = ones
-        print("Processing 193 time {}s".format(time.time() - time_start_193))
-        print("Processing 184 time {}s".format(time.time() - time_start_179))
-        print("Processing area time {}s".format(time.time() - time_start))
+        time_measure['p193'] = time.time() - time_start_179
+        time_measure['p184'] = time.time() - time_start_184
+        time_measure['parea'] = time.time() - time_start        
         if not stats.mode(self.data['ceil_space']) == 1 and not stats.mode(self.data['next_ceil_space']) == 1:
             data = np.array([self.data['air_space'], self.data['ceil_space'], self.data['next_ceil_space']])
             self._data.append(data)
@@ -227,7 +239,8 @@ class recorder():
                 print(np.mean(self.model.predict(np.array(self._data)), 0))
                 print(self._opcion_move)
                 del self._data[0]
-                print("Processing predic time {}s".format(time.time() - time_start))       
+                
+                time_measure['ppreddict'] = time.time() - time_start
             self.__capture_counter += 1            
         else:
             self._data = []
@@ -305,4 +318,5 @@ if __name__ == "__main__":
         print("Processing {}s".format(time.time() - start))
         
         if cv.waitKey(1) == ord('q'):
+            r.death = True
             break
