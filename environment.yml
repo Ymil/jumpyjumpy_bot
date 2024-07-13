@@ -61,4 +61,3 @@ dependencies:
     - werkzeug==1.0.1
     - wrapt==1.12.1
 prefix: C:\Users\escritorio\miniconda3\envs\jumpy_bot
-
